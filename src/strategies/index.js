@@ -10,7 +10,8 @@ const strategies = {
   spotify: require('./spotify'),
   strava: require('./strava'),
   twitter: require('./twitter'),
-  test: require('./test')
+  test: require('./test'),
+  discord: require('./discord')
 }
 
 const isConfigured = strategy => strategy.config

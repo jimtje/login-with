@@ -11,6 +11,7 @@ const mixer = require('../src/strategies/mixer')
 const linkedin = require('../src/strategies/linkedin')
 const spotify = require('../src/strategies/spotify')
 const strava = require('../src/strategies/strava')
+const discord = require('../src/strategies/discord')
 const assert = require('assert')
 
 describe('the strategies module', () => {
@@ -140,8 +141,8 @@ describe('the strategies module', () => {
         displayName: 'Foo Bar',
         username: 'pop',
         _raw: JSON.stringify({
-          avatar_url: 'asd'
-        })
+                               avatar_url: 'asd'
+                             })
       }
       github.toUser(123, 345, githubInfo, (error, user) => {
         assert(!error)
@@ -307,6 +308,57 @@ describe('the strategies module', () => {
     })
   })
 
+  describe('discord', () => {
+    let strategies
+    before(() => {
+      const env = {}
+      env.LW_DISCORD_CLIENTID = 654251736554536970
+      env.LW_GOOGLE_CLIENTSECRET = 'id5JWh3QOkKrtFhopcibjXJfKRf6djEd'
+      strategies = load(env, rootUrl)
+    })
+
+    it('gets loaded', () => {
+      assert.equal(strategies.length, 1)
+      assert.equal(strategies[0].type, 'discord')
+    })
+
+    it('config is correct', () => {
+      assert.deepEqual(strategies[0].config, {
+        clientID: 654251736554536970,
+        clientSecret: 'id5JWh3QOkKrtFhopcibjXJfKRf6djEd',
+        callbackURL: 'https://foo.bar/discord/callback'
+      })
+    })
+
+    it('preHook', () => {
+      const opts = {}
+      discord.preHook(undefined, opts)
+      assert.deepEqual(opts.scope, ['email', 'identify'])
+    })
+
+    it('toUser', done => {
+      const discordinfo = {
+        id: '1234567890',
+        username: 'Foo Bar',
+        discriminator: '1234',
+        email: 'abc@123.com'
+      }
+      discord.toUser(654251736554536970, 'id5JWh3QOkKrtFhopcibjXJfKRf6djEd', discordinfo, (error, user) => {
+        assert(!error)
+        assert.equal(user.accessToken, 654251736554536970)
+        assert.equal(user.refreshToken, 'id5JWh3QOkKrtFhopcibjXJfKRf6djEd')
+        assert.deepEqual(user.profile, {
+          id: '1234567890',
+          username: abc@123.com',
+          name: 'Foo Bar1234',
+          photo: null,
+          provider: 'discord'
+        });
+        done()
+      })
+    })
+  });
+
   describe('test', () => {
     let strategies
     before(() => {
@@ -345,7 +397,7 @@ describe('the strategies module', () => {
       it('ctor sets name to "test"', () => {
         const verify = 123
         const callbackURL = 'foo'
-        const ts = new test.Ctor({ callbackURL }, verify)
+        const ts = new test.Ctor({callbackURL}, verify)
         assert.equal(ts.name, 'test')
         assert.equal(ts._verify, verify)
       })
@@ -353,7 +405,7 @@ describe('the strategies module', () => {
       it('.authenticate once calls verifys this.redirect', done => {
         const callbackURL = 'foo'
         const verify = 123
-        const ts = new test.Ctor({ callbackURL }, verify)
+        const ts = new test.Ctor({callbackURL}, verify)
         const req = {
           session: {}
         }
@@ -369,11 +421,12 @@ describe('the strategies module', () => {
         const verify = (profile, f) => {
           f(null, profile)
         }
-        const ts = new test.Ctor({ callbackURL }, verify)
+        const ts = new test.Ctor({callbackURL}, verify)
         const req = {
           session: {}
         }
-        ts.redirect = () => { }
+        ts.redirect = () => {
+        }
         ts.success = user => {
           assert.deepEqual(user, {
             username: 'foo',
@@ -465,7 +518,7 @@ describe('the strategies module', () => {
         displayName: 'Foo Bar',
         username: 'pop',
         photos: [
-          { value: 'asd' }
+          {value: 'asd'}
         ]
       }
       twitter.toUser(123, 345, twitterInfo, (error, user) => {
@@ -510,7 +563,7 @@ describe('the strategies module', () => {
         provider: 'instagram',
         displayName: 'Foo Bar',
         username: 'pop',
-        _json: { data: { profile_picture: 'asd' } }
+        _json: {data: {profile_picture: 'asd'}}
       }
       instagram.toUser(123, 345, instagramInfo, (error, user) => {
         assert(!error)
@@ -616,7 +669,7 @@ describe('the strategies module', () => {
       const spotifyInfo = {
         provider: PROVIDER,
         displayName: 'Foo Bar',
-        photos: [{ value: 'asd' }]
+        photos: [{value: 'asd'}]
       }
       spotify.toUser(123, 345, spotifyInfo, (error, user) => {
         assert(!error)
